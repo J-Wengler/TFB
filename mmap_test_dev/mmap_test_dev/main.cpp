@@ -233,6 +233,7 @@ int main(int argc, char** argv)
                 //            string num = "";
                 //            iss >> num;
                 strcat(chunk, substring);
+                int newInt = 0;
                 //            if (j == (idsToGet.size() - 1))
                 //            {
                 //                //strToAdd += '\n';

@@ -176,7 +176,7 @@ int main(int argc, char** argv)
             
             long int coorToGrab = (indexStartWidth[idsToGet[j]].first + (i * lineLength));
             char substring[indexStartWidth[idsToGet[j]].second];
-            memcpy(substring, &dataFile[coorToGrab], indexStartWidth[idsToGet[j]].second);
+            strncpy(substring, &dataFile[coorToGrab], indexStartWidth[idsToGet[j]].second);
             substring[indexStartWidth[idsToGet[j]].second] = '\0';
             string strToAdd = "";
             strToAdd.assign(substring);

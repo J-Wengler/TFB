@@ -4,3 +4,4 @@
 **/__pycache__/
 *.pyc
 TFB_DATA/100*
+Output/

@@ -22,12 +22,13 @@
 echo
 echo "Python File:
 "
-time python ./Python/TestFixedWidth2.py /Users/jameswengler/TFB/TFB_DATA/100_900_1000000.fwf2 /Users/jameswengler/TFB/TFB_DATA/100_900_1000000_columns.tsv ~/TFB/OutputPY.txt 1000000
-
+time python ~/TFB/Python/TestFixedWidth2.py /Users/jameswengler/TFB/TFB_DATA/100_900_1000000.fwf2 /Users/jameswengler/TFB/TFB_DATA/100_900_1000000_columns.tsv ~/TFB/Output/OutputPY.txt 1000000
+echo "Sleeping for 1 minute to allow computer to cool"
+sleep 60s
 echo
 echo "Compilation time (-std=gnu++14):"
 
-time clang++ -std=gnu++14 mmap_test/mmap_test/main.cpp -o mmap
+time clang++ -std=gnu++14 ~/TFB/mmap_test/mmap_test/main.cpp -o mmap
 
 echo
 echo "C++ File:

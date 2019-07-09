@@ -23,7 +23,7 @@ const int CHUNK_SIZE = 1000;
 
 typedef unordered_map<int, pair <long long int, int>> dictionary;
 
-static inline void rtrim(std::string &s) {
+static inline void trimRightWhitespace(std::string &s) {
     s.erase(std::find_if(s.rbegin(), s.rend(),
                          std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
 }
@@ -32,44 +32,42 @@ static inline void rtrim(std::string &s) {
 dictionary ParseDataCoordinates(vector<int> lineIndex, char * coorFile, int coorFileMaxLength, long long int fullStrLength)
 {
    
-
-    
-    dictionary myDict;
+    dictionary IndexsStartPositionsWidths;
     for (int i = 0; i < lineIndex.size(); i++)
     {
         int key = lineIndex[i];
         long long int indexToStart = (key * (coorFileMaxLength + 1)) - 1;
-        char substring[coorFileMaxLength];
-        memcpy(substring, &coorFile[indexToStart], coorFileMaxLength);
+        char substringFromFile[coorFileMaxLength];
+        memmove(substringFromFile, &coorFile[indexToStart], coorFileMaxLength);
         //copy(substring, &coorFile[indexToStart], coorFileMaxLength);
-        string str = "";
-        str.assign(substring, coorFileMaxLength);
-        istringstream getInt(str);
+        string stringToReadFrom = "";
+        stringToReadFrom.assign(substringFromFile, coorFileMaxLength);
+        istringstream getInt(stringToReadFrom);
         int startPos;
         getInt >> startPos;
         if (indexToStart == (fullStrLength - coorFileMaxLength))
         {
             int width =  ((fullStrLength / (coorFileMaxLength + 1) - 1) - startPos);
-            myDict[key].first = startPos;
-            myDict[key].second = width;
+            IndexsStartPositionsWidths[key].first = startPos;
+            IndexsStartPositionsWidths[key].second = width;
         }
         else
         {
-            char substring[coorFileMaxLength];
-            memcpy(substring, &coorFile[(indexToStart + 1) + (coorFileMaxLength + 1)], (coorFileMaxLength + 1));
-            string str = "";
-            str.assign(substring, coorFileMaxLength);
-            istringstream getInt(str);
+            char substringFromFile[coorFileMaxLength];
+            memcpy(substringFromFile, &coorFile[(indexToStart + 1) + (coorFileMaxLength + 1)], (coorFileMaxLength + 1));
+            string stringToReadFrom = "";
+            stringToReadFrom.assign(substringFromFile, coorFileMaxLength);
+            istringstream getInt(stringToReadFrom);
             int endPos;
             getInt >> endPos;
             int width = (endPos - startPos);
-            myDict[key].first = startPos;
-            myDict[key].second = width;
+            IndexsStartPositionsWidths[key].first = startPos;
+            IndexsStartPositionsWidths[key].second = width;
         }
     }
     
     
-    return myDict;
+    return IndexsStartPositionsWidths;
 }
 
 
@@ -131,24 +129,22 @@ int main(int argc, char** argv)
     int maxColumnCoordLength;
     mcclFile >> maxColumnCoordLength;
 
-    //Uses maxColumnCoordLength to calculate the number of columns in the file
-    long long int numCol = (colFileSize / (maxColumnCoordLength + 1)) - 1;
     
     //Uses an ifstream to pull out each index for the column to be grabbed
-    string str;
+    string stringToReadFrom;
     vector<int> idsToGet = {};
     //"odd" is responsible for only pulling the integers out of the file by skipping all the strings (input file is int-string-int-string etc)
     int odd = 0;
     ifstream columns(pathToColTsv);
-    while (columns >> str)
+    while (columns >> stringToReadFrom)
     {
         if (odd % 2 == 0)
         {
             //Converts the string (From the file) to an int (for use later)
-            istringstream toInt(str);
-            int num;
-            toInt >> num;
-            idsToGet.push_back(num);
+            istringstream toInt(stringToReadFrom);
+            int numericID;
+            toInt >> numericID;
+            idsToGet.push_back(numericID);
         }
         odd++;
     }
@@ -175,22 +171,22 @@ int main(int argc, char** argv)
         {
             
             long int coorToGrab = (indexStartWidth[idsToGet[j]].first + (i * lineLength));
-            char substring[indexStartWidth[idsToGet[j]].second];
-            strncpy(substring, &dataFile[coorToGrab], indexStartWidth[idsToGet[j]].second);
-            substring[indexStartWidth[idsToGet[j]].second] = '\0';
-            string strToAdd = "";
-            strToAdd.assign(substring);
-            rtrim(strToAdd);
+            char substringFromFile[indexStartWidth[idsToGet[j]].second];
+            memmove(substringFromFile, &dataFile[coorToGrab], indexStartWidth[idsToGet[j]].second);
+            substringFromFile[indexStartWidth[idsToGet[j]].second] = '\0';
+            string strToAddToChunk = "";
+            strToAddToChunk.assign(substringFromFile);
+            trimRightWhitespace(strToAddToChunk);
             if (j == (idsToGet.size() - 1))
             {
-                strToAdd += "\n";
-                chunk += strToAdd;
+                strToAddToChunk += "\n";
+                chunk += strToAddToChunk;
                 
             }
             else
             {
-                strToAdd += "\t";
-                chunk += strToAdd;
+                strToAddToChunk += "\t";
+                chunk += strToAddToChunk;
             }
             
             
@@ -228,7 +224,6 @@ int main(int argc, char** argv)
 
 //    auto end = std::chrono::steady_clock::now();
 //    cout << "Took " << (chrono::duration_cast<chrono::milliseconds>(end - begin).count()) / 1000 << " seconds." << endl;
-    cout << "Finsihed";
     
     return 0;
 }

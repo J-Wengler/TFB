@@ -35,11 +35,11 @@ dictionary ParseDataCoordinates(vector<int> lineIndex, char * coorFile, int coor
     dictionary IndexsStartPositionsWidths;
     for (int i = 0; i < lineIndex.size(); i++)
     {
+        //Add descriptive comment
         int key = lineIndex[i];
         long long int indexToStart = (key * (coorFileMaxLength + 1)) - 1;
         char substringFromFile[coorFileMaxLength];
-        memmove(substringFromFile, &coorFile[indexToStart], coorFileMaxLength);
-        //copy(substring, &coorFile[indexToStart], coorFileMaxLength);
+        memmove(substringFromFile, &coorFile[indexToStart], coorFileMaxLength); 
         string stringToReadFrom = "";
         stringToReadFrom.assign(substringFromFile, coorFileMaxLength);
         istringstream getInt(stringToReadFrom);
@@ -54,7 +54,7 @@ dictionary ParseDataCoordinates(vector<int> lineIndex, char * coorFile, int coor
         else
         {
             char substringFromFile[coorFileMaxLength];
-            memcpy(substringFromFile, &coorFile[(indexToStart + 1) + (coorFileMaxLength + 1)], (coorFileMaxLength + 1));
+            memmove(substringFromFile, &coorFile[(indexToStart + 1) + (coorFileMaxLength + 1)], (coorFileMaxLength + 1));
             string stringToReadFrom = "";
             stringToReadFrom.assign(substringFromFile, coorFileMaxLength);
             istringstream getInt(stringToReadFrom);
@@ -66,17 +66,12 @@ dictionary ParseDataCoordinates(vector<int> lineIndex, char * coorFile, int coor
         }
     }
     
-    
     return IndexsStartPositionsWidths;
 }
 
 
 int main(int argc, char** argv)
 {
-    
-//     auto begin = std::chrono::steady_clock::now();
-    
-    
     
     //All argv arguements
     string pathToLlFile = argv[1];
@@ -88,13 +83,11 @@ int main(int argc, char** argv)
     string pathToRowFile = argv[7];
     
     
-    
-    
-    
     //Opens the line length file, pulls out an integer, and assigns it to lineLength
     ifstream llFile(pathToLlFile);
     int lineLength;
     llFile >> lineLength;
+    
     
     //Creates a int object that can be opened using datamapping for the data input file
     int pathToData = open(dataPath, O_RDONLY, 0);
@@ -111,6 +104,7 @@ int main(int argc, char** argv)
     istringstream getRows(argv[7]);
     int long long numRows;
     getRows >> numRows;
+    
  
     //Creates a int object that can be opened using datamapping for the column input file
     int cols = open(pathToColFile, O_RDONLY, 0);
@@ -155,7 +149,6 @@ int main(int argc, char** argv)
     //Implements chunking to reduce writing calls to the file
     //Writes to the file using fprintf (C syntax, and notably faster than C++)
     //"chunk" is the string that is built to be written to the file
-    
     string chunk = "";
     int chunkCount = 0;
     FILE* outFile =  fopen(pathToOutput, "w");
@@ -189,9 +182,8 @@ int main(int argc, char** argv)
                 chunk += strToAddToChunk;
             }
             
-            
         }
-
+        
         //Checks if the current chunk is still less in size than CHUNK_SIZE (a global variable)
         //if not, the chunk is written to the file
         if (chunkCount < CHUNK_SIZE)
@@ -206,24 +198,15 @@ int main(int argc, char** argv)
             chunkCount = 0;
         }
 
-        
-
     }
+    
+    
     //After the for loop, adds the remaing chunk to the file
     if (chunk.size() > 0)
     {
         
         fprintf(outFile,"%s", chunk.c_str());
     }
-    
-    
-    
-    
-    
-    
-
-//    auto end = std::chrono::steady_clock::now();
-//    cout << "Took " << (chrono::duration_cast<chrono::milliseconds>(end - begin).count()) / 1000 << " seconds." << endl;
     
     return 0;
 }

@@ -18,6 +18,7 @@
 #include <vector>
 #include <ctype.h>
 #include <unordered_map>
+#include <string>
 using namespace std;
 
 const int CHUNK_SIZE = 1000;

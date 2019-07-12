@@ -6,6 +6,7 @@
 //  Copyright © 2019 James Wengler. All rights reserved.
 //
 
+#include <algorithm>
 #include <stdio.h>
 #include <sstream>
 #include <iostream>
@@ -35,24 +36,24 @@ static inline void rtrim(std::string &s) {
 }
 
 
-dictionary ParseDataCoordinates(vector<int> lineIndex, char * coorFile, int coorFileMaxLength, long long int fullStrLength)
+dictionary ParseDataCoordinates(int lineIndexSize, int* lineIndex, char * coorFile, int coorFileMaxLength, long long int fullStrLength)
 {
     
     
     
     dictionary myDict;
-    for (int i = 0; i < lineIndex.size(); i++)
+    for (int i = 0; i < lineIndexSize; i++)
     {
         int key = lineIndex[i];
         long long int indexToStart = (key * (coorFileMaxLength + 1)) - 1;
         char substring[coorFileMaxLength];
-        memcpy(substring, &coorFile[indexToStart], coorFileMaxLength);
+        memmove(substring, &coorFile[indexToStart], coorFileMaxLength);
         //copy(substring, &coorFile[indexToStart], coorFileMaxLength);
-        string str = "";
-        str.assign(substring, coorFileMaxLength);
-        istringstream getInt(str);
-        int startPos;
-        getInt >> startPos;
+        //string str = "";
+        //str.assign(substring, coorFileMaxLength);
+        //istringstream getInt(str);
+        int startPos = atoi(substring);
+        //getInt >> startPos;
         if (indexToStart == (fullStrLength - coorFileMaxLength))
         {
             int width =  ((fullStrLength / (coorFileMaxLength + 1) - 1) - startPos);
@@ -62,7 +63,7 @@ dictionary ParseDataCoordinates(vector<int> lineIndex, char * coorFile, int coor
         else
         {
             char substring[coorFileMaxLength];
-            memcpy(substring, &coorFile[(indexToStart + 1) + (coorFileMaxLength + 1)], (coorFileMaxLength + 1));
+            memmove(substring, &coorFile[(indexToStart + 1) + (coorFileMaxLength + 1)], (coorFileMaxLength + 1));
             string str = "";
             str.assign(substring, coorFileMaxLength);
             istringstream getInt(str);
@@ -81,9 +82,6 @@ dictionary ParseDataCoordinates(vector<int> lineIndex, char * coorFile, int coor
 
 int main(int argc, char** argv)
 {
-    
-        auto begin = std::chrono::steady_clock::now();
-    
     
     
     //All argv arguements
@@ -163,6 +161,9 @@ int main(int argc, char** argv)
             odd++;
         }
     
+    int idsToGetSize = idsToGet.size();
+    int* idsToGetPointerArray = &idsToGet[0];
+    
         //Creates an array with all the column coordinates
         //the for loop builds a string from each character in the file, then when it reaches a newline character, uses istringstream to convert it
         //to an integar and adds it to the array
@@ -201,95 +202,64 @@ int main(int argc, char** argv)
         //"chunk" is the string that is built to be written to the file
     
         //    string chunk = "";
-        char chunk[CHUNK_SIZE];
-        int chunkCount = 0;
-        FILE* outFile =  fopen(pathToOutput, "w");
-        if (outFile == NULL)
+    string chunk = "";
+    int chunkCount = 0;
+    FILE* outFile =  fopen(pathToOutput, "w");
+    if (outFile == NULL)
+    {
+        cerr << "Failed to open output file (was NULL)" << endl;
+        exit(1);
+    }
+    dictionary indexStartWidth = ParseDataCoordinates(idsToGetSize, idsToGetPointerArray, colFile, maxColumnCoordLength, colFileSize);
+    for (unsigned long int i = 0; i <= (numRows); i++)
+    {
+        for (int j = 0; j < idsToGet.size(); j++)
         {
-            cerr << "Failed to open output file (was NULL)" << endl;
-            exit(1);
-        }
-        dictionary indexStartWidth = ParseDataCoordinates(idsToGet, colFile, maxColumnCoordLength, colFileSize);
-        for (unsigned long int i = 0; i <= (numRows); i++)
-        {
-            for (int j = 0; j < idsToGet.size(); j++)
+            
+            long int coorToGrab = (indexStartWidth[idsToGet[j]].first + (i * lineLength));
+            char substringFromFile[indexStartWidth[idsToGet[j]].second];
+            memmove(substringFromFile, &dataFile[coorToGrab], indexStartWidth[idsToGet[j]].second);
+            substringFromFile[indexStartWidth[idsToGet[j]].second] = '\0';
+            string strToAddToChunk = "";
+            strToAddToChunk.assign(substringFromFile);
+            rtrim(strToAddToChunk);
+            if (j == (idsToGet.size() - 1))
             {
-                //            cout << "Column: " << col.first << endl;
-                //            cout << "Index: " << col.second.first << endl;
-                //                        cout << "Width: " << indexStartWidth[idsToGet[j]].second << endl;
-                long int coorToGrab = (indexStartWidth[idsToGet[j]].first + (i * lineLength));
-                char substring[indexStartWidth[idsToGet[j]].second];
-                //cout << substring << endl;
-                memcpy(substring, &dataFile[coorToGrab], indexStartWidth[idsToGet[j]].second);
-                substring[indexStartWidth[idsToGet[j]].second] = '\0';
-                //cout << substring << endl;
-                //The issue was in memcpy, it adds junk characters to the end of substring, which subsequently ends up in fprintf, have to append a null character to the end substring
-                //            string strToAdd = "";
-                //char strToAdd[] = "";
-                //            strToAdd.assign(substring);
-                //rtrim(strToAdd);
-                //            istringstream iss(strToAdd);
-                //            //cout << strToAdd << endl;
-                //            string num = "";
-                //            iss >> num;
-                strcat(chunk, substring);
-                //            if (j == (idsToGet.size() - 1))
-                //            {
-                //                //strToAdd += '\n';
-                ////                strToAdd += "\n";
-                ////                chunk += strToAdd;
-                //                strcat(chunk, substring);
-                //                //cout << num << endl;
-                //
-                //            }
-                //            else
-                //            {
-                //                //strToAdd += '\t';
-                ////                strToAdd += "\t";
-                //                strcat(chunk, substring);
-                ////                chunk += strToAdd;
-                //                //cout << num << endl;
-                //            }
-    
-    
-            }
-    
-            //Checks if the current chunk is still less in size than CHUNK_SIZE (a global variable)
-            //if not, the chunk is written to the file
-            if (chunkCount < CHUNK_SIZE)
-            {
-                chunkCount++;
+                strToAddToChunk += "\n";
+                chunk += strToAddToChunk;
+                
             }
             else
             {
-                //the .c_str() function converts chunk from char[] to char*[]
-                //cout << chunk << endl;
-    
-                //            fprintf(outFile,"%s", chunk.c_str());
-                fprintf(outFile,"%s", chunk);
-                memset(chunk, 0, sizeof(chunk));
-                //chunk = "";
-                chunkCount = 0;
+                strToAddToChunk += "\t";
+                chunk += strToAddToChunk;
             }
-    
-    
-    
+            
         }
-        //After the for loop, adds the remaing chunk to the file
-        if (strlen(chunk) > 0)
+        
+        //Checks if the current chunk is still less in size than CHUNK_SIZE (a global variable)
+        //if not, the chunk is written to the file
+        if (chunkCount < CHUNK_SIZE)
         {
-            //        fprintf(outFile,"%s", chunk.c_str());
-            fprintf(outFile,"%s", chunk);
+            chunkCount++;
         }
+        else
+        {
+            //the .c_str() function converts chunk from char[] to char*[]
+            fprintf(outFile,"%s", chunk.c_str());
+            chunk = "";
+            chunkCount = 0;
+        }
+        
+    }
     
     
-    
-    
-    
-    
-    
-        auto end = std::chrono::steady_clock::now();
-        cout << "Took " << (chrono::duration_cast<chrono::milliseconds>(end - begin).count()) / 1000 << " seconds." << endl;
+    //After the for loop, adds the remaing chunk to the file
+    if (chunk.size() > 0)
+    {
+        
+        fprintf(outFile,"%s", chunk.c_str());
+    }
     
     return 0;
 }

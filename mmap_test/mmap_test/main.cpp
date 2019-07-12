@@ -7,6 +7,7 @@
 //////////////////////////////////
 
 
+#include <algorithm>
 #include <sstream>
 #include <iostream>
 #include <cstring>
@@ -29,17 +30,17 @@ static inline void trimRightWhitespace(std::string &s) {
 }
 
 
-dictionary ParseDataCoordinates(vector<int> lineIndex, char * coorFile, int coorFileMaxLength, long long int fullStrLength)
+dictionary ParseDataCoordinates(int lineIndexSize, int* lineIndex, char * coorFile, int coorFileMaxLength, long long int fullStrLength)
 {
    
     dictionary IndexsStartPositionsWidths;
-    for (int i = 0; i < lineIndex.size(); i++)
+    for (int i = 0; i < lineIndexSize; i++)
     {
         //Add descriptive comment
         int key = lineIndex[i];
         long long int indexToStart = (key * (coorFileMaxLength + 1)) - 1;
         char substringFromFile[coorFileMaxLength];
-        memmove(substringFromFile, &coorFile[indexToStart], coorFileMaxLength); 
+        memmove(substringFromFile, &coorFile[indexToStart], coorFileMaxLength);
         string stringToReadFrom = "";
         stringToReadFrom.assign(substringFromFile, coorFileMaxLength);
         istringstream getInt(stringToReadFrom);
@@ -142,6 +143,8 @@ int main(int argc, char** argv)
         }
         odd++;
     }
+    int idsToGetSize = idsToGet.size();
+    int* idsToGetPointerArray = &idsToGet[0];
     
 
     
@@ -157,7 +160,7 @@ int main(int argc, char** argv)
         cerr << "Failed to open output file (was NULL)" << endl;
         exit(1);
     }
-    dictionary indexStartWidth = ParseDataCoordinates(idsToGet, colFile, maxColumnCoordLength, colFileSize);
+    dictionary indexStartWidth = ParseDataCoordinates(idsToGetSize, idsToGetPointerArray, colFile, maxColumnCoordLength, colFileSize);
     for (unsigned long int i = 0; i <= (numRows); i++)
     {
         for (int j = 0; j < idsToGet.size(); j++)

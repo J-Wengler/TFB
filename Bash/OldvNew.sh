@@ -10,6 +10,8 @@ echo "C++ File:
 "
 time ./mmap /Users/jameswengler/TFB/TFB_DATA/100_900_1000000.fwf2.ll /Users/jameswengler/TFB/TFB_DATA/100_900_1000000.fwf2 /Users/jameswengler/TFB/TFB_DATA/100_900_1000000.fwf2.cc /Users/jameswengler/TFB/Output/OldOutputC++.txt /Users/jameswengler/TFB/TFB_DATA/100_900_1000000.fwf2.mccl /Users/jameswengler/TFB/TFB_DATA/100_900_1000000_columns.tsv 1000000
 echo
+echo "Sleeping for 1 minute to cool computer"
+sleep 60s
 echo "Testing New Code"
 echo "Compilation time (-std=gnu++14):"
 

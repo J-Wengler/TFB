@@ -26,25 +26,96 @@ const int CHUNK_SIZE = 1000;
 typedef unordered_map<int, pair <long long int, int>> dictionary;
 
 static inline void trimRightWhitespace(std::string &s) {
-    s.erase(std::find_if(s.rbegin(), s.rend(),
-                         std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+    s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
 }
 
-void ParseDataCoordinates(int lineIndexSize, int* lineIndex, char * coorFile, int coorFileMaxLength, long long int fullStrLength, int startPositions[], int widths[])
+int getIntFromCCFile(int coorFileMaxLength, char * coorFile, int indexToStart)
+{
+    char substring[coorFileMaxLength];
+    memmove(substring, &coorFile[indexToStart], coorFileMaxLength);
+    int position = atoi(substring);
+    
+    return position;
+    
+}
+
+char* openMmapFile(char* filePath)
+{
+    int intFileObject = open(filePath, O_RDONLY, 0);
+    if (intFileObject < 0)
+    {
+        cerr << "Unable to open " << filePath << " for input." << endl;
+        exit(1);
+    }
+    //lseek finds the end of the file (to be used in opening a datamapped file)
+    long long dataFileSize = lseek(intFileObject, 0, SEEK_END);
+    char *dataFile = reinterpret_cast<char*>(mmap(NULL, dataFileSize, PROT_READ, MAP_FILE | MAP_SHARED, intFileObject, 0));
+    
+    return dataFile;
+}
+
+int readScalarFromFile(string filePath)
+{
+    ifstream grabInt(filePath);
+    int intToGet;
+    grabInt >> intToGet;
+    return intToGet;
+}
+
+int long long readScalarFromArgv(string arguement)
+{
+    istringstream getRows(arguement);
+    int long long scalar;
+    getRows >> scalar;
+    
+    return scalar;
+}
+
+vector<int> createLineIndex(string filePath)
+{
+    string stringToReadFrom = "";
+    vector<int> lineIndex = {};
+    //"odd" is responsible for only pulling the integers out of the file by skipping all the strings (input file is int-string-int-string etc)
+    int odd = 0;    ifstream columns(filePath);
+    while (columns >> stringToReadFrom)
+    {
+        if (odd % 2 == 0)
+        {
+            //Converts the string (From the file) to an int (for use later)
+            istringstream toInt(stringToReadFrom);
+            int numericID;
+            toInt >> numericID;
+            lineIndex.push_back(numericID);
+        }
+        odd++;
+    }
+    //arraySize = lineIndex.size();
+    
+    return lineIndex;
+    
+}
+
+void createTrimmedValue(char * mmapFile, long int coorToGrab, int width, string &myString)
+{
+    char substringFromFile[width];
+    memmove(substringFromFile, &mmapFile[coorToGrab], width);
+    substringFromFile[width] = '\0';
+    myString.assign(substringFromFile);
+    trimRightWhitespace(myString);
+    
+}
+
+void ParseDataCoordinates(int lineIndexSize, int* lineIndex, char * coorFile, int coorFileMaxLength, int* startPositions, int* widths)
 {
     
     for (int i = 0; i < lineIndexSize; i++)
     {
         int key = lineIndex[i];
         long long int indexToStart = (key * (coorFileMaxLength + 1));
-        char startPosString[coorFileMaxLength];
-        memmove(startPosString, &coorFile[indexToStart], coorFileMaxLength);
-        int startPos = atoi(startPosString);
+        int startPos = getIntFromCCFile(coorFileMaxLength, coorFile, indexToStart);
         startPositions[i] = startPos;
         
-        char endPosSubstring[coorFileMaxLength];
-        memmove(endPosSubstring, &coorFile[(indexToStart) + (coorFileMaxLength + 1)], (coorFileMaxLength));
-        int endPos = atoi(endPosSubstring);
+        int endPos = getIntFromCCFile(coorFileMaxLength, coorFile, (indexToStart + coorFileMaxLength + 1));
         int width = (endPos - startPos);
         widths[i] = width;
     }
@@ -62,73 +133,36 @@ int main(int argc, char** argv)
     char* pathToOutput = argv[4];
     string pathToMCCL = argv[5];
     string pathToColTsv = argv[6];
-    string pathToRowFile = argv[7];
+    string intNumRows = argv[7];
     
     
     //Opens the line length file, pulls out an integer, and assigns it to lineLength
-    ifstream llFile(pathToLlFile);
-    int lineLength;
-    llFile >> lineLength;
+    int lineLength = readScalarFromFile(pathToLlFile);
+
     
+    //Opens a memory mapped file to the .fwf2 data file
+    char *dataFile = openMmapFile(dataPath);
     
-    //Creates a int object that can be opened using datamapping for the data input file
-    int pathToData = open(dataPath, O_RDONLY, 0);
-    if (pathToData < 0)
-    {
-        cerr << "Unable to open " << argv[2] << " for input." << endl;
-        exit(1);
-    }
-    //lseek finds the end of the file (to be used in opening a datamapped file)
-    long long dataFileSize = lseek(pathToData, 0, SEEK_END);
-    char *dataFile = reinterpret_cast<char*>(mmap(NULL, dataFileSize, PROT_READ, MAP_FILE | MAP_SHARED, pathToData, 0));
+    //Uses istringstream to pull an int from the command line
+    int long long numRows = readScalarFromArgv(intNumRows);
     
-    //Using istringstream, calculates the number of rows in the file and stores it as numRows
-    istringstream getRows(argv[7]);
-    int long long numRows;
-    getRows >> numRows;
-    
-    
-    //Creates a int object that can be opened using datamapping for the column input file
-    int cols = open(pathToColFile, O_RDONLY, 0);
-    if (cols < 0)
-    {
-        cerr << "Unable to open " << argv[3] << " for input." << endl;
-        exit(1);
-    }
-    //lseek finds the end of the file (to be used in opening a datamapped file)
-    long long colFileSize = lseek(cols, 0, SEEK_END);
-    char *colFile = reinterpret_cast<char*>(mmap(NULL, colFileSize, PROT_READ, MAP_FILE | MAP_SHARED, cols, 0));
+    //Opens a memory mapped file to the .cc file
+    char *colFile = openMmapFile(pathToColFile);
     
     
     //Uses an ifstream to pull out an int for the maximum column coordinate length (max number of characters per line)
-    ifstream mcclFile(pathToMCCL);
-    int maxColumnCoordLength;
-    mcclFile >> maxColumnCoordLength;
+    int maxColumnCoordLength = readScalarFromFile(pathToMCCL);
+
     
     
     //Uses an ifstream to pull out each index for the column to be grabbed
-    string stringToReadFrom;
-    vector<int> idsToGet = {};
-    //"odd" is responsible for only pulling the integers out of the file by skipping all the strings (input file is int-string-int-string etc)
-    int odd = 0;
-    ifstream columns(pathToColTsv);
-    while (columns >> stringToReadFrom)
-    {
-        if (odd % 2 == 0)
-        {
-            //Converts the string (From the file) to an int (for use later)
-            istringstream toInt(stringToReadFrom);
-            int numericID;
-            toInt >> numericID;
-            idsToGet.push_back(numericID);
-        }
-        odd++;
-    }
-    int idsToGetSize = idsToGet.size();
-    int* idsToGetPointerArray = &idsToGet[0];
+    vector<int> lineIndex = createLineIndex(pathToColTsv);
+    int lineIndexSize = lineIndex.size();
+    int* lineIndexPointerArray = &lineIndex[0];
     
-    int startPositions[idsToGetSize];
-    int colWidths[idsToGetSize];
+    
+    int startPositions[lineIndexSize];
+    int colWidths[lineIndexSize];
     
     
     //Uses a FILE object to open argv[4] as an output file
@@ -143,32 +177,26 @@ int main(int argc, char** argv)
         cerr << "Failed to open output file (was NULL)" << endl;
         exit(1);
     }
-    ParseDataCoordinates(idsToGetSize, idsToGetPointerArray, colFile, maxColumnCoordLength, colFileSize, startPositions, colWidths);
+    ParseDataCoordinates(lineIndexSize, lineIndexPointerArray, colFile, maxColumnCoordLength, startPositions, colWidths);
     for (unsigned long int i = 0; i <= (numRows); i++)
     {
-        for (int j = 0; j < idsToGet.size(); j++)
+        for (int j = 0; j < lineIndexSize - 1; j++)
         {
             
             long int coorToGrab = (startPositions[j] + (i * lineLength));
-            char substringFromFile[colWidths[j]];
-            memmove(substringFromFile, &dataFile[coorToGrab], colWidths[j]);
-            substringFromFile[colWidths[j]] = '\0';
-            string strToAddToChunk = "";
-            strToAddToChunk.assign(substringFromFile);
-            trimRightWhitespace(strToAddToChunk);
-            if (j == (idsToGet.size() - 1))
-            {
-                strToAddToChunk += "\n";
-                chunk += strToAddToChunk;
-                
-            }
-            else
-            {
-                strToAddToChunk += "\t";
-                chunk += strToAddToChunk;
-            }
+            int width = colWidths[j];
+            string strToAdd = "";
+            createTrimmedValue(dataFile, coorToGrab, width, strToAdd);
+            strToAdd+= '\t';
+            chunk += strToAdd;
             
         }
+        long int coorToGrab = (startPositions[lineIndexSize - 1] + (i * lineLength));
+        int width = colWidths[lineIndexSize - 1];
+        string strToAdd = "";
+        createTrimmedValue(dataFile, coorToGrab, width, strToAdd);
+        strToAdd+= '\n';
+        chunk+=strToAdd;
         
         //Checks if the current chunk is still less in size than CHUNK_SIZE (a global variable)
         //if not, the chunk is written to the file

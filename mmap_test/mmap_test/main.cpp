@@ -128,7 +128,6 @@ int main(int argc, char** argv)
     }
     int idsToGetSize = idsToGet.size();
     int* idsToGetPointerArray = &idsToGet[0];
-    
 
     
     //Uses a FILE object to open argv[4] as an output file

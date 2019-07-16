@@ -33,43 +33,25 @@ static inline void trimRightWhitespace(std::string &s) {
 
 dictionary ParseDataCoordinates(int lineIndexSize, int* lineIndex, char * coorFile, int coorFileMaxLength, long long int fullStrLength)
 {
-   
-    dictionary IndexsStartPositionsWidths;
+    dictionary myDict;
     for (int i = 0; i < lineIndexSize; i++)
     {
-        //Add descriptive comment
         int key = lineIndex[i];
-        long long int indexToStart = (key * (coorFileMaxLength + 1)) - 1;
-        char substringFromFile[coorFileMaxLength];
-        memmove(substringFromFile, &coorFile[indexToStart], coorFileMaxLength);
-        string stringToReadFrom = "";
-        stringToReadFrom.assign(substringFromFile, coorFileMaxLength);
-        istringstream getInt(stringToReadFrom);
-        int startPos;
-        getInt >> startPos;
-        if (indexToStart == (fullStrLength - coorFileMaxLength))
-        {
-            int width =  ((fullStrLength / (coorFileMaxLength + 1) - 1) - startPos);
-            IndexsStartPositionsWidths[key].first = startPos;
-            IndexsStartPositionsWidths[key].second = width;
-        }
-        else
-        {
-            char substringFromFile[coorFileMaxLength];
-            memmove(substringFromFile, &coorFile[(indexToStart + 1) + (coorFileMaxLength + 1)], (coorFileMaxLength + 1));
-            string stringToReadFrom = "";
-            stringToReadFrom.assign(substringFromFile, coorFileMaxLength);
-            istringstream getInt(stringToReadFrom);
-            int endPos;
-            getInt >> endPos;
-            int width = (endPos - startPos);
-            IndexsStartPositionsWidths[key].first = startPos;
-            IndexsStartPositionsWidths[key].second = width;
-        }
+        long long int indexToStart = (key * (coorFileMaxLength + 1));
+        char startPosString[coorFileMaxLength];
+        memmove(startPosString, &coorFile[indexToStart], coorFileMaxLength);
+        int startPos = atoi(startPosString);
+        
+        char endPosSubstring[coorFileMaxLength];
+        memmove(endPosSubstring, &coorFile[(indexToStart) + (coorFileMaxLength + 1)], (coorFileMaxLength));
+        int endPos = atoi(endPosSubstring);
+        int width = (endPos - startPos);
+        myDict[key].first = startPos;
+        myDict[key].second = width;
     }
-    
-    return IndexsStartPositionsWidths;
+    return myDict;
 }
+
 
 
 int main(int argc, char** argv)
@@ -211,6 +193,7 @@ int main(int argc, char** argv)
         
         fprintf(outFile,"%s", chunk.c_str());
     }
+    
     
     return 0;
 }

@@ -27,7 +27,6 @@ const int CHUNK_SIZE = 1000;
 //Used to format the output
 static inline void trimRightWhitespace(std::string &s)
 {
-    //s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
     int endOfWhitespace;
     for (int i = s.size(); i > -1; i--)
     {

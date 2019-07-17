@@ -25,7 +25,8 @@ const int CHUNK_SIZE = 1000;
 
 //This function passes in a string by reference and removes the whitespace to the right
 //Used to format the output
-static inline void trimRightWhitespace(std::string &s) {
+static inline void trimRightWhitespace(std::string &s)
+{
     s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
 }
 
@@ -38,7 +39,6 @@ int getIntFromCCFile(int coorFileMaxLength, char * coorFile, int indexToStart)
     int position = atoi(substring);
     
     return position;
-    
 }
 
 //This function accepts a char* filePath then returns a char* mmap file
@@ -51,6 +51,7 @@ char* openMmapFile(char* filePath)
         cerr << "Unable to open " << filePath << " for input." << endl;
         exit(1);
     }
+    
     //lseek finds the end of the file (to be used in opening a datamapped file)
     long long dataFileSize = lseek(intFileObject, 0, SEEK_END);
     char *dataFile = reinterpret_cast<char*>(mmap(NULL, dataFileSize, PROT_READ, MAP_FILE | MAP_SHARED, intFileObject, 0));
@@ -65,6 +66,7 @@ int readScalarFromFile(string filePath)
     ifstream grabInt(filePath);
     int intToGet;
     grabInt >> intToGet;
+    
     return intToGet;
 }
 
@@ -101,7 +103,6 @@ vector<int> createLineIndex(string filePath)
     }
     
     return lineIndex;
-    
 }
 
 //This function takes in a mmap file, a coordinate, the width of the column, and a string by reference
@@ -114,7 +115,6 @@ void createTrimmedValue(char * mmapFile, long int coorToGrab, int width, string 
     substringFromFile[width] = '\0';
     myString.assign(substringFromFile);
     trimRightWhitespace(myString);
-    
 }
 
 //This function passes in 2 arrays by reference, and then using the lineIndex array, populates them with the
@@ -122,7 +122,6 @@ void createTrimmedValue(char * mmapFile, long int coorToGrab, int width, string 
 //Used to create the arrays containing the data for each column
 void ParseDataCoordinates(int lineIndexSize, int* lineIndex, char * coorFile, int coorFileMaxLength, int* startPositions, int* widths)
 {
-    
     for (int i = 0; i < lineIndexSize; i++)
     {
         int column = lineIndex[i];
@@ -134,7 +133,6 @@ void ParseDataCoordinates(int lineIndexSize, int* lineIndex, char * coorFile, in
         int width = (endPos - startPos);
         widths[i] = width;
     }
-    
 }
 
 int main(int argc, char** argv)

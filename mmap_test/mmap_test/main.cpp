@@ -208,7 +208,7 @@ int main(int argc, char** argv)
         long int coorToGrab = (colStartPositions[lineIndexSize - 1] + (i * lineLength));
         int width = colWidths[lineIndexSize - 1];
         string strToAdd = "";
-        //createTrimmedValue(dataFile, coorToGrab, width, strToAdd);
+        createTrimmedValue(dataFile, coorToGrab, width, strToAdd);
         strToAdd += '\n';
         chunk += strToAdd;
         

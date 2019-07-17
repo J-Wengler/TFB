@@ -31,14 +31,15 @@ static inline void trimRightWhitespace(std::string &s)
     int endOfWhitespace;
     for (int i = s.size(); i > -1; i--)
     {
-        if (!isspace(s[i]))
+        char character = s[i];
+        if (!isspace(s[i]) && s[i] != '\0')
         {
             endOfWhitespace = i;
             break;
         }
         
     }
-    s.erase(endOfWhitespace, s.size());
+    s.erase(endOfWhitespace + 1, s.size());
 }
 
 //This function takes an index and a mmap file, then returns the integar (as an int) found at that position

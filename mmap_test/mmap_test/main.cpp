@@ -27,7 +27,18 @@ const int CHUNK_SIZE = 1000;
 //Used to format the output
 static inline void trimRightWhitespace(std::string &s)
 {
-    s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+    //s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+    int endOfWhitespace;
+    for (int i = s.size(); i > -1; i--)
+    {
+        if (isspace(s[i]))
+        {
+            endOfWhitespace = i;
+            break;
+        }
+        
+    }
+    s.erase(endOfWhitespace, s.size());
 }
 
 //This function takes an index and a mmap file, then returns the integar (as an int) found at that position

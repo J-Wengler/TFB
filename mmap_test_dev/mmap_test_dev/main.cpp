@@ -25,12 +25,11 @@ const int CHUNK_SIZE = 1000;
 
 //This function passes in a string by reference and removes the whitespace to the right
 //Used to format the output
-static inline void trimRightWhitespace(std::string &s)
+static inline void trimRightWhitespace(char* &s, int &size)
 {
     int endOfWhitespace;
-    for (int i = s.size(); i > -1; i--)
+    for (int i = size; i > -1; i--)
     {
-        char character = s[i];
         if (!isspace(s[i]) && s[i] != '\0')
         {
             endOfWhitespace = i;
@@ -38,7 +37,8 @@ static inline void trimRightWhitespace(std::string &s)
         }
         
     }
-    s.erase(endOfWhitespace + 1, s.size());
+    size = endOfWhitespace;
+    //s[endOfWhitespace + 1] = '\0';
 }
 
 //This function takes an index and a mmap file, then returns the integar (as an int) found at that position
@@ -116,17 +116,28 @@ vector<int> createLineIndex(string filePath)
     return lineIndex;
 }
 
+void pushCStrToVector(char * cStr, int cStrSize, vector<char> &myVector)
+{
+    for (int i = 0; i < cStrSize; i++)
+    {
+        if (!isspace(cStr[i]) && cStr[i] != '\0')
+        {
+            myVector.push_back(cStr[i]);
+        }
+    }
+}
+
 //This function takes in a mmap file, a coordinate, the width of the column, and a string by reference
 //The string is modified to contain whatever is at the specified coordinate with no trailing whitespace
 //Used to format the output
-void createTrimmedValue(char * mmapFile, long int coorToGrab, int width, string &myString)
+void createTrimmedValue(char * mmapFile, long int coorToGrab, int &width, vector<char> &myVector)
 {
     char substringFromFile[width];
     memmove(substringFromFile, &mmapFile[coorToGrab], width);
     substringFromFile[width] = '\0';
-    myString.assign(substringFromFile);
-    trimRightWhitespace(myString);
+    pushCStrToVector(substringFromFile, width, myVector);
 }
+
 
 //This function passes in 2 arrays by reference, and then using the lineIndex array, populates them with the
 //start position and width of each column the user wants to project
@@ -143,6 +154,14 @@ void ParseDataCoordinates(int lineIndexSize, int* lineIndex, char * coorFile, in
         int endPos = getIntFromCCFile(coorFileMaxLength, coorFile, (indexToStart + coorFileMaxLength + 1));
         int width = (endPos - startPos);
         widths[i] = width;
+    }
+}
+
+void convertVectorToCharArray(vector<char> &myVec, char* myCharArray, int vectorSize)
+{
+    for (int i = 0; i < vectorSize; i++)
+    {
+        myCharArray[i] = myVec[i];
     }
 }
 
@@ -189,7 +208,7 @@ int main(int argc, char** argv)
     //Implements chunking to reduce writing calls to the file
     //Writes to the file using fprintf (C syntax, and notably faster than C++)
     //"chunk" is the string that is built to be written to the file
-    string chunk = "";
+    vector<char> chunk;
     int chunkCount = 0;
     FILE* outFile =  fopen(pathToOutput, "w");
     
@@ -207,19 +226,20 @@ int main(int argc, char** argv)
             
             long int coorToGrab = (colStartPositions[j] + (i * lineLength));
             int width = colWidths[j];
-            string strToAdd = "";
+            vector<char> strToAdd;
             createTrimmedValue(dataFile, coorToGrab, width, strToAdd);
-            strToAdd += '\t';
-            chunk += strToAdd;
+            strToAdd.push_back('\t');
+            chunk.insert(chunk.end(), strToAdd.begin(), strToAdd.end());
+
             
         }
         
         long int coorToGrab = (colStartPositions[lineIndexSize - 1] + (i * lineLength));
         int width = colWidths[lineIndexSize - 1];
-        string strToAdd = "";
+        vector<char> strToAdd;
         createTrimmedValue(dataFile, coorToGrab, width, strToAdd);
-        strToAdd += '\n';
-        chunk += strToAdd;
+        strToAdd.push_back('\n');
+        chunk.insert(chunk.end(), strToAdd.begin(), strToAdd.end());
         
         //Checks if the current chunk is still less in size than CHUNK_SIZE (a global variable)
         //if not, the chunk is written to the file
@@ -229,9 +249,13 @@ int main(int argc, char** argv)
         }
         else
         {
-            //the .c_str() function converts chunk from char[] to char*[]
-            fprintf(outFile, "%s", chunk.c_str());
-            chunk = "";
+            
+            char* tempCharArray = new char[chunk.size()];
+            convertVectorToCharArray(chunk, tempCharArray, chunk.size());
+            fprintf(outFile, "%s", tempCharArray);
+            delete [] tempCharArray;
+            vector <char> emptyVec;
+            chunk.swap(emptyVec);
             chunkCount = 0;
         }
         
@@ -240,8 +264,11 @@ int main(int argc, char** argv)
     //After the for loop, adds the remaing chunk to the file
     if (chunk.size() > 0)
     {
-        
-        fprintf(outFile, "%s", chunk.c_str());
+
+        char* tempCharArray = new char[chunk.size()];
+        convertVectorToCharArray(chunk, tempCharArray, chunk.size());
+        fprintf(outFile, "%s", tempCharArray);
+        delete [] tempCharArray;
     }
     
     return 0;

@@ -27,10 +27,9 @@ const int CHUNK_SIZE = 1000;
 //Used to format the output
 static inline void trimRightWhitespace(std::string &s)
 {
-    int endOfWhitespace;
-    for (int i = s.size(); i > -1; i--)
+    unsigned long int endOfWhitespace = 0;
+    for (unsigned long int i = s.size(); i > 0; i--)
     {
-        char character = s[i];
         if (!isspace(s[i]) && s[i] != '\0')
         {
             endOfWhitespace = i;
@@ -92,7 +91,7 @@ int long long readScalarFromArgv(string arguement)
     return scalar;
 }
 
-//This function returns a vector of the columns that the user wants to query
+//This function returns a vector of the columns that the user wants to project
 //Used to make a vector from the _columns_tsv file
 vector<int> createLineIndex(string filePath)
 {
@@ -119,7 +118,7 @@ vector<int> createLineIndex(string filePath)
 //This function takes in a mmap file, a coordinate, the width of the column, and a string by reference
 //The string is modified to contain whatever is at the specified coordinate with no trailing whitespace
 //Used to format the output
-void createTrimmedValue(char * mmapFile, long int coorToGrab, int width, string &myString)
+void createTrimmedValue(char * mmapFile, long int coorToGrab, long long int width, string &myString)
 {
     char substringFromFile[width];
     memmove(substringFromFile, &mmapFile[coorToGrab], width);
@@ -131,17 +130,17 @@ void createTrimmedValue(char * mmapFile, long int coorToGrab, int width, string 
 //This function passes in 2 arrays by reference, and then using the lineIndex array, populates them with the
 //start position and width of each column the user wants to project
 //Used to create the arrays containing the data for each column
-void ParseDataCoordinates(int lineIndexSize, int* lineIndex, char * coorFile, int coorFileMaxLength, int* startPositions, int* widths)
+void ParseDataCoordinates(unsigned long int lineIndexSize, int* lineIndex, char * coorFile, int coorFileMaxLength, long long int* startPositions, long long int* widths)
 {
     for (int i = 0; i < lineIndexSize; i++)
     {
         int column = lineIndex[i];
-        long long int indexToStart = (column * (coorFileMaxLength + 1));
+        int indexToStart = (column * (coorFileMaxLength + 1));
         int startPos = getIntFromCCFile(coorFileMaxLength, coorFile, indexToStart);
         startPositions[i] = startPos;
         
-        int endPos = getIntFromCCFile(coorFileMaxLength, coorFile, (indexToStart + coorFileMaxLength + 1));
-        int width = (endPos - startPos);
+        long long int endPos = getIntFromCCFile(coorFileMaxLength, coorFile, (indexToStart + coorFileMaxLength + 1));
+        long long int width = (endPos - startPos);
         widths[i] = width;
     }
 }
@@ -175,12 +174,12 @@ int main(int argc, char** argv)
     
     //Uses an ifstream to pull out each index for the column to be grabbed
     vector<int> lineIndex = createLineIndex(pathToColTsv);
-    int lineIndexSize = lineIndex.size();
+    unsigned long int lineIndexSize = lineIndex.size();
     int* lineIndexPointerArray = &lineIndex[0];
     
     //Create 2 arrays to be used in ParseDataCoordinates
-    int colStartPositions[lineIndexSize];
-    int colWidths[lineIndexSize];
+    long long int colStartPositions[lineIndexSize];
+    long long int colWidths[lineIndexSize];
     
     //Calls ParseDataCoordinates that populates the above arways with the starting postitions and widths
     ParseDataCoordinates(lineIndexSize, lineIndexPointerArray, colFile, maxColumnCoordLength, colStartPositions, colWidths);
@@ -206,7 +205,7 @@ int main(int argc, char** argv)
         {
             
             long int coorToGrab = (colStartPositions[j] + (i * lineLength));
-            int width = colWidths[j];
+            long long int width = colWidths[j];
             string strToAdd = "";
             createTrimmedValue(dataFile, coorToGrab, width, strToAdd);
             strToAdd += '\t';
@@ -215,7 +214,7 @@ int main(int argc, char** argv)
         }
         
         long int coorToGrab = (colStartPositions[lineIndexSize - 1] + (i * lineLength));
-        int width = colWidths[lineIndexSize - 1];
+        long long int width = colWidths[lineIndexSize - 1];
         string strToAdd = "";
         createTrimmedValue(dataFile, coorToGrab, width, strToAdd);
         strToAdd += '\n';

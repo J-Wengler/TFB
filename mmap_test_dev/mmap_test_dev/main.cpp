@@ -30,11 +30,6 @@ static inline void trimRightWhitespace(std::string &s)
     unsigned long int endOfWhitespace = 0;
     for (unsigned long int i = s.size(); i > 0; i--)
     {
-//        if (!isspace(s[i]) && s[i] != '\0')
-//        {
-//            endOfWhitespace = i;
-//            break;
-//        }
         if (s[i] != ' ' && s[i] != '\0')
         {
             endOfWhitespace = i;

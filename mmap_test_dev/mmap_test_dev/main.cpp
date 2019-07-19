@@ -28,7 +28,8 @@ const int CHUNK_SIZE = 1000;
 static inline void trimRightWhitespace(std::string &s)
 {
     unsigned long int endOfWhitespace = 0;
-    for (unsigned long int i = s.size(); i > 0; i--)
+    unsigned long int stringSize = s.size();
+    for (unsigned long int i = stringSize; i > 0; i--)
     {
         if (s[i] != ' ' && s[i] != '\0')
         {

@@ -42,7 +42,7 @@ static inline void trimRightWhitespace(std::string &s)
 
 //This function takes an index and a mmap file, then returns the integar (as an int) found at that position
 //used to build the lineIndex array
-static inline int getIntFromCCFile(int coorFileMaxLength, char * coorFile, int indexToStart)
+int getIntFromCCFile(int coorFileMaxLength, char * coorFile, int indexToStart)
 {
     char substring[coorFileMaxLength];
     memmove(substring, &coorFile[indexToStart], coorFileMaxLength);
@@ -53,7 +53,7 @@ static inline int getIntFromCCFile(int coorFileMaxLength, char * coorFile, int i
 
 //This function accepts a char* filePath then returns a char* mmap file
 //Used to open the data and .cc file
-static inline char* openMmapFile(char* filePath)
+char* openMmapFile(char* filePath)
 {
     int intFileObject = open(filePath, O_RDONLY, 0);
     if (intFileObject < 0)
@@ -71,7 +71,7 @@ static inline char* openMmapFile(char* filePath)
 
 //This funtion reads a single integar from a file
 //Used for ll and mccl file
-static inline int readScalarFromFile(string filePath)
+int readScalarFromFile(string filePath)
 {
     ifstream grabInt(filePath);
     int intToGet;
@@ -82,7 +82,7 @@ static inline int readScalarFromFile(string filePath)
 
 //This function reads a single integar from agrv
 //Used for numRows
-static inline int long long readScalarFromArgv(string arguement)
+int long long readScalarFromArgv(string arguement)
 {
     istringstream getRows(arguement);
     int long long scalar;
@@ -93,7 +93,7 @@ static inline int long long readScalarFromArgv(string arguement)
 
 //This function returns a vector of the columns that the user wants to project
 //Used to make a vector from the _columns_tsv file
-static inline vector<int> createLineIndex(string filePath)
+vector<int> createLineIndex(string filePath)
 {
     string stringToReadFrom = "";
     vector<int> lineIndex = {};
@@ -118,7 +118,7 @@ static inline vector<int> createLineIndex(string filePath)
 //This function takes in a mmap file, a coordinate, the width of the column, and a string by reference
 //The string is modified to contain whatever is at the specified coordinate with no trailing whitespace
 //Used to format the output
-static inline void createTrimmedValue(char * mmapFile, long int coorToGrab, long long int width, string &myString)
+void createTrimmedValue(char * mmapFile, long int coorToGrab, long long int width, string &myString)
 {
     char substringFromFile[width];
     memmove(substringFromFile, &mmapFile[coorToGrab], width);
@@ -130,7 +130,7 @@ static inline void createTrimmedValue(char * mmapFile, long int coorToGrab, long
 //This function passes in 2 arrays by reference, and then using the lineIndex array, populates them with the
 //start position and width of each column the user wants to project
 //Used to create the arrays containing the data for each column
-static inline void ParseDataCoordinates(unsigned long int lineIndexSize, int* lineIndex, char * coorFile, int coorFileMaxLength, long long int* startPositions, long long int* widths)
+void ParseDataCoordinates(unsigned long int lineIndexSize, int* lineIndex, char * coorFile, int coorFileMaxLength, long long int* startPositions, long long int* widths)
 {
     for (int i = 0; i < lineIndexSize; i++)
     {
@@ -245,3 +245,5 @@ int main(int argc, char** argv)
     
     return 0;
 }
+
+

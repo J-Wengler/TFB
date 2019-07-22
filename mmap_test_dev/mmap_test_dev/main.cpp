@@ -209,8 +209,8 @@ int main(int argc, char** argv)
             long long int width = colWidths[j];
             string strToAdd = "";
             createTrimmedValue(dataFile, coorToGrab, width, strToAdd);
-            strToAdd.append("\t");
-            chunk.append(strToAdd);
+            strToAdd += '\t';
+            chunk += strToAdd;
             
         }
         
@@ -218,8 +218,8 @@ int main(int argc, char** argv)
         long long int width = colWidths[lineIndexSize - 1];
         string strToAdd = "";
         createTrimmedValue(dataFile, coorToGrab, width, strToAdd);
-        strToAdd.append("\n");
-        chunk.append(strToAdd);
+        strToAdd += '\n';
+        chunk += strToAdd;
         
         //Checks if the current chunk is still less in size than CHUNK_SIZE (a global variable)
         //if not, the chunk is written to the file
@@ -246,5 +246,4 @@ int main(int argc, char** argv)
     
     return 0;
 }
-
 

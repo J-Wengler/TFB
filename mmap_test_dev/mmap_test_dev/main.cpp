@@ -190,7 +190,6 @@ int main(int argc, char** argv)
     //Writes to the file using fprintf (C syntax, and notably faster than C++)
     //"chunk" is the string that is built to be written to the file
     string chunk = "";
-    chunk.reserve(CHUNK_SIZE * lineLength);
     int chunkCount = 0;
     FILE* outFile =  fopen(pathToOutput, "w");
     

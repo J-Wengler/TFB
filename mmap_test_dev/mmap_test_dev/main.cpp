@@ -230,7 +230,7 @@ int main(int argc, char** argv)
         else
         {
             //the .c_str() function converts chunk from char[] to char*[]
-            fputs(chunk.c_str(),outFile);
+            fprintf(outFile, "%s", chunk.c_str());
             chunk = "";
             chunkCount = 0;
         }
@@ -241,7 +241,7 @@ int main(int argc, char** argv)
     if (chunk.size() > 0)
     {
         
-        fputs(chunk.c_str(),outFile);
+        fprintf(outFile, "%s", chunk.c_str());
     }
     
     return 0;

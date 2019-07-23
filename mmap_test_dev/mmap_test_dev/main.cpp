@@ -6,7 +6,6 @@
 //                              //
 //////////////////////////////////
 
-
 #include <algorithm>
 #include <sstream>
 #include <iostream>
@@ -36,7 +35,6 @@ static inline void trimRightWhitespace(std::string &s)
             endOfWhitespace = i;
             break;
         }
-        
     }
     s.erase(endOfWhitespace + 1, s.size());
 }
@@ -131,16 +129,16 @@ void createTrimmedValue(char * mmapFile, long int coorToGrab, long long int widt
 //This function passes in 2 arrays by reference, and then using the lineIndex array, populates them with the
 //start position and width of each column the user wants to project
 //Used to create the arrays containing the data for each column
-void ParseDataCoordinates(unsigned long int lineIndexSize, int* lineIndex, char * coorFile, int coorFileMaxLength, long long int* startPositions, long long int* widths)
+void ParseDataCoords(unsigned long int lineIndexSize, int* lineIndices, char * coordsFile, int coordsFileMaxLength, long long int* startPositions, long long int* widths)
 {
     for (int i = 0; i < lineIndexSize; i++)
     {
-        int column = lineIndex[i];
-        int indexToStart = (column * (coorFileMaxLength + 1));
-        int startPos = getIntFromCCFile(coorFileMaxLength, coorFile, indexToStart);
+        int column = lineIndices[i];
+        int indexToStart = (column * (coordsFileMaxLength + 1));
+        int startPos = getIntFromCCFile(coordsFileMaxLength, coordsFile, indexToStart);
         startPositions[i] = startPos;
         
-        long long int endPos = getIntFromCCFile(coorFileMaxLength, coorFile, (indexToStart + coorFileMaxLength + 1));
+        long long int endPos = getIntFromCCFile(coordsFileMaxLength, coordsFile, (indexToStart + coordsFileMaxLength + 1));
         long long int width = (endPos - startPos);
         widths[i] = width;
     }
@@ -153,37 +151,37 @@ int main(int argc, char** argv)
     string pathToLlFile = argv[1];
     char* dataPath = argv[2];
     char* pathToColFile = argv[3];
-    char* pathToOutput = argv[4];
+    char* outFilePath = argv[4];
     string pathToMCCL = argv[5];
-    string pathToColTsv = argv[6];
+    string colNamesFilePath = argv[6];
     string intNumRows = argv[7];
     
     //Opens the line length file, pulls out an integer, and assigns it to lineLength
     int lineLength = readScalarFromFile(pathToLlFile);
     
     //Opens a memory mapped file to the .fwf2 data file
-    char *dataFile = openMmapFile(dataPath);
+    char *dataMapFile = openMmapFile(dataPath);
     
     //Uses istringstream to pull an int from the command line
     int long long numRows = readScalarFromArgv(intNumRows);
     
     //Opens a memory mapped file to the .cc file
-    char *colFile = openMmapFile(pathToColFile);
+    char *ccMapFile = openMmapFile(pathToColFile);
     
     //Uses an ifstream to pull out an int for the maximum column coordinate length (max number of characters per line)
     int maxColumnCoordLength = readScalarFromFile(pathToMCCL);
     
     //Uses an ifstream to pull out each index for the column to be grabbed
-    vector<int> lineIndex = createLineIndex(pathToColTsv);
+    vector<int> lineIndex = createLineIndex(colNamesFilePath);
     unsigned long int lineIndexSize = lineIndex.size();
     int* lineIndexPointerArray = &lineIndex[0];
     
     //Create 2 arrays to be used in ParseDataCoordinates
-    long long int colStartPositions[lineIndexSize];
+    long long int colCoords[lineIndexSize];
     long long int colWidths[lineIndexSize];
     
     //Calls ParseDataCoordinates that populates the above arways with the starting postitions and widths
-    ParseDataCoordinates(lineIndexSize, lineIndexPointerArray, colFile, maxColumnCoordLength, colStartPositions, colWidths);
+    ParseDataCoords(lineIndexSize, lineIndexPointerArray, ccMapFile, maxColumnCoordLength, colCoords, colWidths);
     
     //Uses a FILE object to open argv[4] as an output file
     //Implements chunking to reduce writing calls to the file
@@ -191,8 +189,7 @@ int main(int argc, char** argv)
     //"chunk" is the string that is built to be written to the file
     string chunk = "";
     int chunkCount = 0;
-    FILE* outFile =  fopen(pathToOutput, "w");
-    
+    FILE* outFile =  fopen(outFilePath, "w");
     if (outFile == NULL)
     {
         cerr << "Failed to open output file (was NULL)" << endl;
@@ -205,19 +202,19 @@ int main(int argc, char** argv)
         for (int j = 0; j < lineIndexSize - 1; j++)
         {
             
-            long int coorToGrab = (colStartPositions[j] + (i * lineLength));
+            long int coorToGrab = (colCoords[j] + (i * lineLength));
             long long int width = colWidths[j];
             string strToAdd = "";
-            createTrimmedValue(dataFile, coorToGrab, width, strToAdd);
+            createTrimmedValue(dataMapFile, coorToGrab, width, strToAdd);
             strToAdd += '\t';
             chunk += strToAdd;
             
         }
         
-        long int coorToGrab = (colStartPositions[lineIndexSize - 1] + (i * lineLength));
+        long int coorToGrab = (colCoords[lineIndexSize - 1] + (i * lineLength));
         long long int width = colWidths[lineIndexSize - 1];
         string strToAdd = "";
-        createTrimmedValue(dataFile, coorToGrab, width, strToAdd);
+        createTrimmedValue(dataMapFile, coorToGrab, width, strToAdd);
         strToAdd += '\n';
         chunk += strToAdd;
         
@@ -246,4 +243,3 @@ int main(int argc, char** argv)
     
     return 0;
 }
-

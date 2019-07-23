@@ -35,7 +35,9 @@ static inline void trimRightWhitespace(std::string &s)
             endOfWhitespace = i;
             break;
         }
+        
     }
+    
     s.erase(endOfWhitespace + 1, s.size());
 }
 
@@ -108,6 +110,7 @@ vector<int> createLineIndex(string filePath)
             toInt >> numericID;
             lineIndex.push_back(numericID);
         }
+        
         odd++;
     }
     
@@ -129,7 +132,7 @@ void createTrimmedValue(char * mmapFile, long int coorToGrab, long long int widt
 //This function passes in 2 arrays by reference, and then using the lineIndex array, populates them with the
 //start position and width of each column the user wants to project
 //Used to create the arrays containing the data for each column
-void ParseDataCoords(unsigned long int lineIndexSize, int* lineIndices, char * coordsFile, int coordsFileMaxLength, long long int* startPositions, long long int* widths)
+void parseDataCoords(unsigned long int lineIndexSize, int* lineIndices, char * coordsFile, int coordsFileMaxLength, long long int* startPositions, long long int* widths)
 {
     for (int i = 0; i < lineIndexSize; i++)
     {
@@ -142,11 +145,11 @@ void ParseDataCoords(unsigned long int lineIndexSize, int* lineIndices, char * c
         long long int width = (endPos - startPos);
         widths[i] = width;
     }
+    
 }
 
 int main(int argc, char** argv)
 {
-    
     //All argv arguements
     string pathToLlFile = argv[1];
     char* dataPath = argv[2];
@@ -181,7 +184,7 @@ int main(int argc, char** argv)
     long long int colWidths[lineIndexSize];
     
     //Calls ParseDataCoordinates that populates the above arways with the starting postitions and widths
-    ParseDataCoords(lineIndexSize, lineIndexPointerArray, ccMapFile, maxColumnCoordLength, colCoords, colWidths);
+    parseDataCoords(lineIndexSize, lineIndexPointerArray, ccMapFile, maxColumnCoordLength, colCoords, colWidths);
     
     //Uses a FILE object to open argv[4] as an output file
     //Implements chunking to reduce writing calls to the file
@@ -198,7 +201,6 @@ int main(int argc, char** argv)
     
     for (unsigned long int i = 0; i <= (numRows); i++)
     {
-        
         for (int j = 0; j < lineIndexSize - 1; j++)
         {
             
@@ -208,7 +210,6 @@ int main(int argc, char** argv)
             createTrimmedValue(dataMapFile, coorToGrab, width, strToAdd);
             strToAdd += '\t';
             chunk += strToAdd;
-            
         }
         
         long int coorToGrab = (colCoords[lineIndexSize - 1] + (i * lineLength));
@@ -224,6 +225,7 @@ int main(int argc, char** argv)
         {
             chunkCount++;
         }
+        
         else
         {
             //the .c_str() function converts chunk from char[] to char*[]
@@ -237,7 +239,6 @@ int main(int argc, char** argv)
     //After the for loop, adds the remaing chunk to the file
     if (chunk.size() > 0)
     {
-        
         fprintf(outFile, "%s", chunk.c_str());
     }
     

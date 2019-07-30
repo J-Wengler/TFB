@@ -30,7 +30,7 @@ static inline void trimRightWhitespace(std::string &s)
     unsigned long int stringSize = s.size();
     for (unsigned long int i = stringSize; i > 0; i--)
     {
-        if (s[i] != ' ' && s[i] != '\0')
+        if (s[i] != ' ' && s[i] != '\0'  && s[i] != '\n')
         {
             endOfWhitespace = i;
             break;
@@ -39,6 +39,7 @@ static inline void trimRightWhitespace(std::string &s)
     }
     
     s.erase(endOfWhitespace + 1, s.size());
+
 }
 
 //This function takes an index and a mmap file, then returns the integar (as an int) found at that position
@@ -185,6 +186,7 @@ int main(int argc, char** argv)
     
     //Calls ParseDataCoordinates that populates the above arways with the starting postitions and widths
     parseDataCoords(lineIndexSize, lineIndexPointerArray, ccMapFile, maxColumnCoordLength, colCoords, colWidths);
+    
     
     //Uses a FILE object to open argv[4] as an output file
     //Implements chunking to reduce writing calls to the file

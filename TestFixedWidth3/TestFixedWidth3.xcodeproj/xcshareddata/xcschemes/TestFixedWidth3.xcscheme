@@ -75,7 +75,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/jameswengler/TFB/Output/OutputC++.txt"
+            argument = "/Users/jameswengler/TFB/Output/OutputTFW3++.txt"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -88,6 +88,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "1000000"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/jameswengler/TFB/TFB_DATA/100_900_1000000.fwf2.ct"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

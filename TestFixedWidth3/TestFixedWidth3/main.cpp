@@ -21,6 +21,36 @@
 using namespace std;
 
 const int CHUNK_SIZE = 1000;
+const int NUM_QUERIES = 2;
+
+
+bool isNumber (char* ctFile, int curIndex)
+{
+    if (ctFile[curIndex * 2] == 'n')
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+//vector<int> filterRows(int* rowIndices, char* ctFile, long long int column, long long int width)
+//{
+//    vector <int> keepRowIndices;
+//    if (isNumber(ctFile, column))
+//    {
+//        string strToAdd = "This function isn't implemented";
+//        float tempInt = atof(strToAdd.c_str());
+//        if (tempInt > .5)
+//        {
+//            cout << tempInt;
+//        }
+//    }
+//
+//    return keepRowIndices;
+//}
 
 //This function passes in a string by reference and removes the whitespace to the right
 //Used to format the output
@@ -159,6 +189,7 @@ int main(int argc, char** argv)
     string pathToMCCL = argv[5];
     string colNamesFilePath = argv[6];
     string intNumRows = argv[7];
+    char* pathToCtFile = argv[8];
     
     //Opens the line length file, pulls out an integer, and assigns it to lineLength
     int lineLength = readScalarFromFile(pathToLlFile);
@@ -187,6 +218,9 @@ int main(int argc, char** argv)
     //Calls ParseDataCoordinates that populates the above arways with the starting postitions and widths
     parseDataCoords(lineIndexSize, lineIndexPointerArray, ccMapFile, maxColumnCoordLength, colCoords, colWidths);
     
+    //Create a mmap file from the ct file
+    char* ctFile = openMmapFile(pathToCtFile);
+    
     
     //Uses a FILE object to open argv[4] as an output file
     //Implements chunking to reduce writing calls to the file
@@ -201,25 +235,95 @@ int main(int argc, char** argv)
         exit(1);
     }
     
-    for (unsigned long int i = 0; i <= (numRows); i++)
+    //Have a for loop right here that prints out the column names then start the next loop at i = 1
+    
+    for (int j = 0; j < lineIndexSize - 1; j++)
     {
+        
+        long int coorToGrab = (colCoords[j] + (0 * lineLength));
+        long long int width = colWidths[j];
+        string strToAdd = "";
+        createTrimmedValue(dataMapFile, coorToGrab, width, strToAdd);
+        strToAdd += '\t';
+        chunk += strToAdd;
+    }
+    long int coorToGrab = (colCoords[lineIndexSize - 1] + (0 * lineLength));
+    long long int width = colWidths[lineIndexSize - 1];
+    string strToAdd = "";
+    createTrimmedValue(dataMapFile, coorToGrab, width, strToAdd);
+    strToAdd += '\n';
+    chunk += strToAdd;
+    
+    for (unsigned long int i = 1; i <= (numRows); i++)
+    {
+        string rowString = "";
+        int colsAdded = 0;
         for (int j = 0; j < lineIndexSize - 1; j++)
         {
-            
             long int coorToGrab = (colCoords[j] + (i * lineLength));
             long long int width = colWidths[j];
             string strToAdd = "";
             createTrimmedValue(dataMapFile, coorToGrab, width, strToAdd);
-            strToAdd += '\t';
-            chunk += strToAdd;
+            int curIndex = lineIndex[j];
+            if (isNumber(ctFile, curIndex))
+            {
+                float tempInt = atof(strToAdd.c_str());
+                //REMEMBER THAT ATOF DISCARDS WHITESPACE!! Use that to simplify this part in here
+                if (tempInt >= .1)
+                {
+                    rowString += strToAdd;
+                    rowString += '\t';
+                    colsAdded++;
+                }
+
+            }
+            else
+            {
+                if (strToAdd[0] == 'A' || strToAdd[strToAdd.size() - 1] == 'Z')
+                {
+                    rowString += strToAdd;
+                    rowString += '\t';
+                    colsAdded++;
+
+                }
+
+            }
+            
         }
-        
         long int coorToGrab = (colCoords[lineIndexSize - 1] + (i * lineLength));
         long long int width = colWidths[lineIndexSize - 1];
         string strToAdd = "";
         createTrimmedValue(dataMapFile, coorToGrab, width, strToAdd);
-        strToAdd += '\n';
-        chunk += strToAdd;
+        int curIndex = lineIndex[lineIndexSize - 1];
+        if (isNumber(ctFile, curIndex))
+        {
+            float tempInt = atof(strToAdd.c_str());
+            if (tempInt >= .1)
+            {
+
+                rowString += strToAdd;
+                rowString += '\n';
+                colsAdded++;
+
+            }
+ 
+        }
+        else
+        {
+            if (strToAdd[0] == 'A' || strToAdd[strToAdd.size() - 1] == 'Z')
+            {
+                rowString += strToAdd;
+                rowString += '\n';
+                colsAdded++;
+
+            }
+
+        }
+        
+        if(colsAdded == NUM_QUERIES)
+        {
+            chunk+= rowString;
+        }
         
         //Checks if the current chunk is still less in size than CHUNK_SIZE (a global variable)
         //if not, the chunk is written to the file
@@ -237,6 +341,7 @@ int main(int argc, char** argv)
         }
         
     }
+        
     
     //After the for loop, adds the remaing chunk to the file
     if (chunk.size() > 0)

@@ -53,7 +53,11 @@ int getIntFromCCFile(int coorFileMaxLength, FILE* &coorFile, int indexToStart)
     char* substring = new char[coorFileMaxLength];
     fseek(coorFile, indexToStart, SEEK_SET);
     //char is 1 byte
-    fread(substring, 1, coorFileMaxLength, coorFile);
+    size_t num = fread(substring, 1, coorFileMaxLength, coorFile);
+    if (num == 0)
+    {
+        cout << "No bytes read." << endl;
+    }
     int position = atoi(substring);
     delete[] substring;
     
@@ -118,7 +122,11 @@ void createTrimmedValue(FILE* &file, long int coorToGrab, long long int width, s
     char* substringFromFile = new char[width];
     fseek(file, coorToGrab, SEEK_SET);
     //char is 1 byte
-    fread(substringFromFile, 1, width, file);
+    size_t num = fread(substringFromFile, 1, width, file);
+    if (num == 0)
+    {
+        cout << "No bytes read." << endl;
+    }
     substringFromFile[width] = '\0';
     myString.assign(substringFromFile);
     trimRightWhitespace(myString);

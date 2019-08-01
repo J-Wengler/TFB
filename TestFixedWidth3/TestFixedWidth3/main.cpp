@@ -268,7 +268,6 @@ int main(int argc, char** argv)
             if (isNumber(ctFile, curIndex))
             {
                 float tempInt = atof(strToAdd.c_str());
-                //REMEMBER THAT ATOF DISCARDS WHITESPACE!! Use that to simplify this part in here
                 if (tempInt >= .1)
                 {
                     rowString += strToAdd;

@@ -1,0 +1,2 @@
+This is text! I'm testing how to write to a file using lseek!
+This is a second line! Hopefully it handles newlines as characters because if not things are gonna get hairy

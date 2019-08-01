@@ -1,7 +1,8 @@
 ///////////////////////////////////
 //                              //
 //      Piccolo Lab             //
-//      Fixed Width Files  DEV  //
+//      Fixed Width Files       //
+//      NO MMAP                 //
 //      James Wengler           //
 //                              //
 //////////////////////////////////
@@ -26,11 +27,15 @@ const int CHUNK_SIZE = 1000;
 //Used to format the output
 static inline void trimRightWhitespace(std::string &s)
 {
+    if (s.size() == 0)
+    {
+        return;
+    }
     unsigned long int endOfWhitespace = 0;
     unsigned long int stringSize = s.size();
     for (unsigned long int i = stringSize; i > 0; i--)
     {
-        if (s[i] != ' ' && s[i] != '\0'  && s[i] != '\n')
+        if (s[i] != ' ' && s[i] != '\0')
         {
             endOfWhitespace = i;
             break;
@@ -39,37 +44,23 @@ static inline void trimRightWhitespace(std::string &s)
     }
     
     s.erase(endOfWhitespace + 1, s.size());
-    
 }
 
 //This function takes an index and a mmap file, then returns the integar (as an int) found at that position
 //used to build the lineIndex array
-int getIntFromCCFile(int coorFileMaxLength, char * coorFile, int indexToStart)
+int getIntFromCCFile(int coorFileMaxLength, FILE* &coorFile, int indexToStart)
 {
-    char substring[coorFileMaxLength];
-    memmove(substring, &coorFile[indexToStart], coorFileMaxLength);
+    char* substring = new char[coorFileMaxLength];
+    fseek(coorFile, indexToStart, SEEK_SET);
+    //char is 1 byte
+    fread(substring, 1, coorFileMaxLength, coorFile);
     int position = atoi(substring);
+    delete[] substring;
+    
     
     return position;
 }
 
-//This function accepts a char* filePath then returns a char* mmap file
-//Used to open the data and .cc file
-char* openMmapFile(char* filePath)
-{
-    int intFileObject = open(filePath, O_RDONLY, 0);
-    if (intFileObject < 0)
-    {
-        cerr << "Unable to open " << filePath << " for input." << endl;
-        exit(1);
-    }
-    
-    //lseek finds the end of the file (to be used in opening a datamapped file)
-    long long dataFileSize = lseek(intFileObject, 0, SEEK_END);
-    char *dataFile = reinterpret_cast<char*>(mmap(NULL, dataFileSize, PROT_READ, MAP_FILE | MAP_SHARED, intFileObject, 0));
-    
-    return dataFile;
-}
 
 //This funtion reads a single integar from a file
 //Used for ll and mccl file
@@ -100,7 +91,8 @@ vector<int> createLineIndex(string filePath)
     string stringToReadFrom = "";
     vector<int> lineIndex = {};
     //"odd" is responsible for only pulling the integers out of the file by skipping all the strings (input file is int-string-int-string etc)
-    int odd = 0;    ifstream columns(filePath);
+    int odd = 0;
+    ifstream columns(filePath);
     while (columns >> stringToReadFrom)
     {
         if (odd % 2 == 0)
@@ -121,19 +113,22 @@ vector<int> createLineIndex(string filePath)
 //This function takes in a mmap file, a coordinate, the width of the column, and a string by reference
 //The string is modified to contain whatever is at the specified coordinate with no trailing whitespace
 //Used to format the output
-void createTrimmedValue(char * mmapFile, long int coorToGrab, long long int width, string &myString)
+void createTrimmedValue(FILE* &file, long int coorToGrab, long long int width, string &myString)
 {
-    char substringFromFile[width];
-    memmove(substringFromFile, &mmapFile[coorToGrab], width);
+    char* substringFromFile = new char[width];
+    fseek(file, coorToGrab, SEEK_SET);
+    //char is 1 byte
+    fread(substringFromFile, 1, width, file);
     substringFromFile[width] = '\0';
     myString.assign(substringFromFile);
     trimRightWhitespace(myString);
+    delete[] substringFromFile;
 }
 
 //This function passes in 2 arrays by reference, and then using the lineIndex array, populates them with the
 //start position and width of each column the user wants to project
 //Used to create the arrays containing the data for each column
-void parseDataCoords(unsigned long int lineIndexSize, int* lineIndices, char * coordsFile, int coordsFileMaxLength, long long int* startPositions, long long int* widths)
+void parseDataCoords(unsigned long int lineIndexSize, int* lineIndices, FILE* &coordsFile, int coordsFileMaxLength, long long int* startPositions, long long int* widths)
 {
     for (int i = 0; i < lineIndexSize; i++)
     {
@@ -147,6 +142,18 @@ void parseDataCoords(unsigned long int lineIndexSize, int* lineIndices, char * c
         widths[i] = width;
     }
     
+}
+
+FILE* getReadFileObject(char* filePath)
+{
+    FILE* myFile = fopen(filePath, "r");
+    return myFile;
+}
+
+FILE* getWriteFileObject(char* filePath)
+{
+    FILE* myFile = fopen(filePath, "w");
+    return myFile;
 }
 
 int main(int argc, char** argv)
@@ -164,13 +171,13 @@ int main(int argc, char** argv)
     int lineLength = readScalarFromFile(pathToLlFile);
     
     //Opens a memory mapped file to the .fwf2 data file
-    char *dataMapFile = openMmapFile(dataPath);
+    FILE* dataMapFile = getReadFileObject(dataPath);
     
     //Uses istringstream to pull an int from the command line
     int long long numRows = readScalarFromArgv(intNumRows);
     
     //Opens a memory mapped file to the .cc file
-    char *ccMapFile = openMmapFile(pathToColFile);
+    FILE* ccMapFile = getReadFileObject(pathToColFile);
     
     //Uses an ifstream to pull out an int for the maximum column coordinate length (max number of characters per line)
     int maxColumnCoordLength = readScalarFromFile(pathToMCCL);
@@ -186,7 +193,6 @@ int main(int argc, char** argv)
     
     //Calls ParseDataCoordinates that populates the above arways with the starting postitions and widths
     parseDataCoords(lineIndexSize, lineIndexPointerArray, ccMapFile, maxColumnCoordLength, colCoords, colWidths);
-    
     
     //Uses a FILE object to open argv[4] as an output file
     //Implements chunking to reduce writing calls to the file

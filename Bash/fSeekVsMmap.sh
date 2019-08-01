@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Running both versions of code as parallel processes"
 (bash ./runOld.sh) &
-(bash ./runNoMMap.sh)
+(bash ./runNoMMAP.sh)
 echo
 wait
 echo "Testing Files for differences"

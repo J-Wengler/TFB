@@ -90,6 +90,10 @@
             argument = "1000000"
             isEnabled = "YES">
          </CommandLineArgument>
+         <CommandLineArgument
+            argument = "MMAP"
+            isEnabled = "YES">
+         </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
       </AdditionalOptions>

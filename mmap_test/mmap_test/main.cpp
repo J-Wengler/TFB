@@ -53,6 +53,23 @@ int getIntFromCCFile(int coorFileMaxLength, char * coorFile, int indexToStart)
     return position;
 }
 
+int getIntFromCCFileNM(int coorFileMaxLength, FILE* &coorFile, int indexToStart)
+{
+    char* substring = new char[coorFileMaxLength];
+    fseek(coorFile, indexToStart, SEEK_SET);
+    //char is 1 byte
+    size_t num = fread(substring, 1, coorFileMaxLength, coorFile);
+    if (num == 0)
+    {
+        cout << "No bytes read." << endl;
+    }
+    int position = atoi(substring);
+    delete[] substring;
+    
+    
+    return position;
+}
+
 //This function accepts a char* filePath then returns a char* mmap file
 //Used to open the data and .cc file
 char* openMmapFile(char* filePath)
@@ -130,6 +147,28 @@ void createTrimmedValue(char * mmapFile, long int coorToGrab, long long int widt
     trimRightWhitespace(myString);
 }
 
+void createTrimmedValueNM(FILE* &file, long int coorToGrab, long long int width, string &myString)
+{
+    char* substringFromFile = new char[width];
+    fseek(file, coorToGrab, SEEK_SET);
+    //char is 1 byte
+    size_t num = fread(substringFromFile, 1, width, file);
+    if (num == 0)
+    {
+        cout << "No bytes read." << endl;
+    }
+    substringFromFile[width] = '\0';
+    myString.assign(substringFromFile);
+    trimRightWhitespace(myString);
+    delete[] substringFromFile;
+}
+
+FILE* getReadFileObject(char* filePath)
+{
+    FILE* myFile = fopen(filePath, "r");
+    return myFile;
+}
+
 //This function passes in 2 arrays by reference, and then using the lineIndex array, populates them with the
 //start position and width of each column the user wants to project
 //Used to create the arrays containing the data for each column
@@ -149,6 +188,22 @@ void parseDataCoords(unsigned long int lineIndexSize, int* lineIndices, char * c
     
 }
 
+void parseDataCoordsNM(unsigned long int lineIndexSize, int* lineIndices, FILE* &coordsFile, int coordsFileMaxLength, long long int* startPositions, long long int* widths)
+{
+    for (int i = 0; i < lineIndexSize; i++)
+    {
+        int column = lineIndices[i];
+        int indexToStart = (column * (coordsFileMaxLength + 1));
+        int startPos = getIntFromCCFileNM(coordsFileMaxLength, coordsFile, indexToStart);
+        startPositions[i] = startPos;
+        
+        long long int endPos = getIntFromCCFileNM(coordsFileMaxLength, coordsFile, (indexToStart + coordsFileMaxLength + 1));
+        long long int width = (endPos - startPos);
+        widths[i] = width;
+    }
+    
+}
+
 int main(int argc, char** argv)
 {
     //All argv arguements
@@ -159,18 +214,55 @@ int main(int argc, char** argv)
     string pathToMCCL = argv[5];
     string colNamesFilePath = argv[6];
     string intNumRows = argv[7];
+    string useMemoryMapping = argv[8];
     
+    //Sets a flag on wether or not to use Memory-Mapping
+    bool mmap = false;
+    if (useMemoryMapping == "MMAP")
+    {
+        mmap = true;
+    }
+    else if (useMemoryMapping == "NO_MMAP")
+    {
+        ;
+    }
+    else
+    {
+        cerr << "Unrecognized flag for using memory mapping, expected 'MMAP' or 'NO_MMAP' but got '" << useMemoryMapping << "'" << endl;
+        exit(1);
+    }
     //Opens the line length file, pulls out an integer, and assigns it to lineLength
     int lineLength = readScalarFromFile(pathToLlFile);
     
     //Opens a memory mapped file to the .fwf2 data file
-    char *dataMapFile = openMmapFile(dataPath);
+    
+    FILE* dataMapFileNM;
+    char* dataMapFile;
+    if (mmap == false)
+    {
+        dataMapFileNM = getReadFileObject(dataPath);
+    }
+    else
+    {
+        dataMapFile = openMmapFile(dataPath);
+    }
+    
     
     //Uses istringstream to pull an int from the command line
     int long long numRows = readScalarFromArgv(intNumRows);
     
     //Opens a memory mapped file to the .cc file
-    char *ccMapFile = openMmapFile(pathToColFile);
+    FILE* ccMapFileNM;
+    char* ccMapFile;
+    if (mmap == false)
+    {
+        ccMapFileNM = getReadFileObject(pathToColFile);
+    }
+    else
+    {
+        ccMapFile = openMmapFile(pathToColFile);
+    }
+    
     
     //Uses an ifstream to pull out an int for the maximum column coordinate length (max number of characters per line)
     int maxColumnCoordLength = readScalarFromFile(pathToMCCL);
@@ -185,7 +277,15 @@ int main(int argc, char** argv)
     long long int colWidths[lineIndexSize];
     
     //Calls ParseDataCoordinates that populates the above arways with the starting postitions and widths
-    parseDataCoords(lineIndexSize, lineIndexPointerArray, ccMapFile, maxColumnCoordLength, colCoords, colWidths);
+    if (mmap == false)
+    {
+        parseDataCoordsNM(lineIndexSize, lineIndexPointerArray, ccMapFileNM, maxColumnCoordLength, colCoords, colWidths);
+    }
+    else
+    {
+        parseDataCoords(lineIndexSize, lineIndexPointerArray, ccMapFile, maxColumnCoordLength, colCoords, colWidths);
+    }
+    
     
     
     //Uses a FILE object to open argv[4] as an output file
@@ -209,7 +309,16 @@ int main(int argc, char** argv)
             long int coorToGrab = (colCoords[j] + (i * lineLength));
             long long int width = colWidths[j];
             string strToAdd = "";
-            createTrimmedValue(dataMapFile, coorToGrab, width, strToAdd);
+            if (mmap == false)
+            {
+                createTrimmedValueNM(dataMapFileNM, coorToGrab, width, strToAdd);
+            
+            }
+            else
+            {
+                createTrimmedValue(dataMapFile, coorToGrab, width, strToAdd);
+            }
+            
             strToAdd += '\t';
             chunk += strToAdd;
         }
@@ -217,7 +326,15 @@ int main(int argc, char** argv)
         long int coorToGrab = (colCoords[lineIndexSize - 1] + (i * lineLength));
         long long int width = colWidths[lineIndexSize - 1];
         string strToAdd = "";
-        createTrimmedValue(dataMapFile, coorToGrab, width, strToAdd);
+        if (mmap == false)
+        {
+            createTrimmedValueNM(dataMapFileNM, coorToGrab, width, strToAdd);
+            
+        }
+        else
+        {
+            createTrimmedValue(dataMapFile, coorToGrab, width, strToAdd);
+        }
         strToAdd += '\n';
         chunk += strToAdd;
         

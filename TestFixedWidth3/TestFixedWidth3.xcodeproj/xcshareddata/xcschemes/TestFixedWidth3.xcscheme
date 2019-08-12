@@ -94,6 +94,10 @@
             argument = "/Users/jameswengler/TFB/TFB_DATA/100_900_1000000.fwf2.ct"
             isEnabled = "YES">
          </CommandLineArgument>
+         <CommandLineArgument
+            argument = "90,100"
+            isEnabled = "YES">
+         </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
       </AdditionalOptions>

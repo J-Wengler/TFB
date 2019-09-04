@@ -22,6 +22,8 @@ using namespace std;
 
 const int CHUNK_SIZE = 1000;
 
+//Add the extra col to dif in the results
+
 //This function passes in a string by reference and removes the whitespace to the right
 //Used to format the output
 static inline void trimRightWhitespace(std::string &s)

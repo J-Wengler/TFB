@@ -322,12 +322,9 @@ int main(int argc, char** argv)
     
     for (unsigned long int i = 1; i <= matchingRows.size(); i++)
     {
-        string rowString = "";
         for (int j = 0; j < lineIndexSize - 1; j++)
         {
             long int coorToGrab = (colCoords[j] + (matchingRows[i] * lineLength));
-            long long int check = colCoords[j];
-            long long int check2 = matchingRows[i];
             long long int width = colWidths[j];
             string strToAdd = "";
             createTrimmedValue(dataMapFile, coorToGrab, width, strToAdd);

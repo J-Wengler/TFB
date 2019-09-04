@@ -35,21 +35,7 @@ bool isNumber (char* ctFile, int curIndex)
     }
 }
 
-//vector<int> filterRows(int* rowIndices, char* ctFile, long long int column, long long int width)
-//{
-//    vector <int> keepRowIndices;
-//    if (isNumber(ctFile, column))
-//    {
-//        string strToAdd = "This function isn't implemented";
-//        float tempInt = atof(strToAdd.c_str());
-//        if (tempInt > .5)
-//        {
-//            cout << tempInt;
-//        }
-//    }
-//
-//    return keepRowIndices;
-//}
+
 
 //This function passes in a string by reference and removes the whitespace to the right
 //Used to format the output
@@ -72,7 +58,7 @@ static inline void trimRightWhitespace(std::string &s)
 }
 
 //This function takes an index and a mmap file, then returns the integar (as an int) found at that position
-//used to build the lineIndex array
+//Used to build the lineIndex array
 int getIntFromCCFile(int coorFileMaxLength, char * coorFile, int indexToStart)
 {
     char substring[coorFileMaxLength];
@@ -199,6 +185,47 @@ vector<int> makeQueryColVector(string csvValues)
     return indices;
 }
 
+vector<unsigned long int> filterRows (vector<int> queryColIndices, int long long numRows, long long int* colCoords, int lineLength, long long int* colWidths, char* dataMapFile, vector<int> lineIndex, char* ctFile)
+{
+    vector<unsigned long int> matchingRows;
+    //By default the header row is included
+    matchingRows.push_back(0);
+    for (unsigned long int i = 1; i < numRows; i++)
+    {
+        int colsAdded = 0;
+        for (int j = 0; j < queryColIndices.size(); j++)
+        {
+            long int coorToGrab = (colCoords[j] + (i * lineLength));
+            long long int width = colWidths[j];
+            string strToAdd = "";
+            createTrimmedValue(dataMapFile, coorToGrab, width, strToAdd);
+            int curIndex = lineIndex[j];
+            if (isNumber(ctFile, curIndex))
+            {
+                float tempInt = atof(strToAdd.c_str());
+                if (tempInt >= .1)
+                {
+                    colsAdded++;
+                }
+                
+            }
+            else
+            {
+                if (strToAdd[0] == 'A' || strToAdd[strToAdd.size() - 1] == 'Z')
+                {
+                    colsAdded++;
+                }
+                
+            }
+        }
+        if(colsAdded == queryColIndices.size())
+        {
+            matchingRows.push_back(i);
+        }
+    }
+    return matchingRows;
+}
+
 int main(int argc, char** argv)
 {
     //All argv arguements
@@ -259,68 +286,9 @@ int main(int argc, char** argv)
         exit(1);
     }
     
-    vector<unsigned long int> matchingRows;
-    //By default the header row is included
-    matchingRows.push_back(0);
-    for (unsigned long int i = 1; i < numRows; i++)
-    {
-        int colsAdded = 0;
-        for (int j = 0; j < queryColIndices.size(); j++)
-        {
-            long int coorToGrab = (colCoords[j] + (i * lineLength));
-            long long int width = colWidths[j];
-            string strToAdd = "";
-            createTrimmedValue(dataMapFile, coorToGrab, width, strToAdd);
-            int curIndex = lineIndex[j];
-            if (isNumber(ctFile, curIndex))
-            {
-                float tempInt = atof(strToAdd.c_str());
-                if (tempInt >= .1)
-                {
-                    colsAdded++;
-                }
-                
-            }
-            else
-            {
-                if (strToAdd[0] == 'A' || strToAdd[strToAdd.size() - 1] == 'Z')
-                {
-                    colsAdded++;
-                }
-                
-            }
-        }
-        if(colsAdded == queryColIndices.size())
-        {
-            matchingRows.push_back(i);
-        }
-    }
+    vector<unsigned long int> matchingRows = filterRows(queryColIndices, numRows, colCoords, lineLength, colWidths, dataMapFile, lineIndex, ctFile);
     
-    
-    
-    //Get all the matching rows before, then only select those rows in the projection below (No checking should be done beneath this line)
-    for (unsigned long int i = 0; i < 1; i++)
-    {
-        for (int j = 0; j < lineIndexSize - 1; j++)
-        {
-            
-            long int coorToGrab = (colCoords[j] + (i * lineLength));
-            long long int width = colWidths[j];
-            string strToAdd = "";
-            createTrimmedValue(dataMapFile, coorToGrab, width, strToAdd);
-            strToAdd += '\t';
-            chunk += strToAdd;
-        }
-        
-        long int coorToGrab = (colCoords[lineIndexSize - 1] + (i * lineLength));
-        long long int width = colWidths[lineIndexSize - 1];
-        string strToAdd = "";
-        createTrimmedValue(dataMapFile, coorToGrab, width, strToAdd);
-        strToAdd += '\n';
-        chunk += strToAdd;
-    }
-    
-    for (unsigned long int i = 1; i <= matchingRows.size(); i++)
+    for (unsigned long int i = 0; i <= matchingRows.size(); i++)
     {
         for (int j = 0; j < lineIndexSize - 1; j++)
         {

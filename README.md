@@ -1,4 +1,4 @@
-# TFB - Accessing memory-mapped tabular files with C++
+# TFB - Accessing Memory-Mapped Tabular Files with C++
 
 ![](Extras/FWF2.png)
 

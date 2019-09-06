@@ -207,6 +207,10 @@ vector<unsigned long int> filterRows (vector<int> queryColIndices, int long long
                 {
                     colsAdded++;
                 }
+                else
+                {
+                    break;
+                }
                 
             }
             else
@@ -214,6 +218,10 @@ vector<unsigned long int> filterRows (vector<int> queryColIndices, int long long
                 if (strToAdd[0] == 'A' || strToAdd[strToAdd.size() - 1] == 'Z')
                 {
                     colsAdded++;
+                }
+                else
+                {
+                    break;
                 }
                 
             }

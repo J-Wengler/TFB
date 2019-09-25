@@ -158,6 +158,7 @@ void parseDataCoords(unsigned long int lineIndexSize, int* lineIndices, char * c
         startPositions[i] = startPos;
         
         long long int endPos = getIntFromCCFile(coordsFileMaxLength, coordsFile, (indexToStart + coordsFileMaxLength + 1));
+        //FIXME endpos is 0 when it shouldn't be (returns negative width which crashes later
         long long int width = (endPos - startPos);
         widths[i] = width;
     }
@@ -185,7 +186,7 @@ vector<int> makeQueryColVector(string csvValues)
     return indices;
 }
 
-vector<unsigned long int> filterRows (vector<int> queryColIndices, int long long numRows, long long int* colCoords, int lineLength, long long int* colWidths, char* dataMapFile, vector<int> lineIndex, char* ctFile)
+vector<unsigned long int> filterRows (vector<int> queryColIndices, int long long numRows, long long int* colCoords, int lineLength, long long int* colWidths, char* dataMapFile, char* ctFile)
 {
     vector<unsigned long int> matchingRows;
     //By default the header row is included
@@ -199,7 +200,8 @@ vector<unsigned long int> filterRows (vector<int> queryColIndices, int long long
             long long int width = colWidths[j];
             string strToAdd = "";
             createTrimmedValue(dataMapFile, coorToGrab, width, strToAdd);
-            int curIndex = lineIndex[j];
+            //cout << strToAdd << endl;
+            int curIndex = queryColIndices[j];
             if (isNumber(ctFile, curIndex))
             {
                 float tempInt = atof(strToAdd.c_str());
@@ -279,6 +281,14 @@ int main(int argc, char** argv)
     
     //Create a vector from queryColIndicesStr
     vector<int> queryColIndices = makeQueryColVector(queryColIndicesStr);
+    long long int colCoordsQuery[queryColIndices.size()];
+    long long int colWidthsQuery[queryColIndices.size()];
+    unsigned long int queryColSize = queryColIndices.size();
+    int*queryColPointerArray = &queryColIndices[0];
+    
+    parseDataCoords(queryColSize, queryColPointerArray, ccMapFile, maxColumnCoordLength, colCoordsQuery, colWidthsQuery);
+    
+    vector<unsigned long int> matchingRows = filterRows(queryColIndices, numRows, colCoordsQuery, lineLength, colWidthsQuery, dataMapFile, ctFile);
     
     
     //Uses a FILE object to open argv[4] as an output file
@@ -294,12 +304,13 @@ int main(int argc, char** argv)
         exit(1);
     }
     
-    vector<unsigned long int> matchingRows = filterRows(queryColIndices, numRows, colCoords, lineLength, colWidths, dataMapFile, lineIndex, ctFile);
     
-    for (unsigned long int i = 0; i <= matchingRows.size(); i++)
+    
+    for (unsigned long int i = 0; i < matchingRows.size(); i++)
     {
         for (int j = 0; j < lineIndexSize - 1; j++)
         {
+
             long int coorToGrab = (colCoords[j] + (matchingRows[i] * lineLength));
             long long int width = colWidths[j];
             string strToAdd = "";

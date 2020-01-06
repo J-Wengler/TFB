@@ -1,0 +1,83 @@
+//                              //
+//      Piccolo Lab             //
+//      Test Fixed Width 4      //
+//      COMPRESSION             //
+//      James Wengler           //
+//                              //
+
+//#include <stdlib.h>
+//#include <string.h>
+//#include </Users/jameswengler/TFB/zstd-dev/lib/decompress/zstd_decompress.c>
+//#include </usr/local/include/zstd.h>
+//#include <algorithm>
+//#include <sstream>
+//#include <iostream>
+//#include <cstring>
+//#include <fcntl.h>
+//#include <unistd.h>
+//#include <sys/mman.h>
+//#include <fstream>
+//#include <vector>
+//#include <ctype.h>
+//#include <unordered_map>
+//#include <string>
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include </usr/local/include/zstd.h>
+#include <iostream>
+#include <string>
+#include <fstream>
+
+//#include "/Users/jameswengler/TFB/zstd-dev/lib/common/common.h"
+using namespace std;
+
+
+int main(int argc, char** argv)
+{
+    
+    string data = "/Users/jameswengler/TFB/TestData/10_90_1000.fwf2.zstd_1";
+//    ifstream input(data);
+//    string myStr;
+//    getline(input, myStr);
+//    size_t lineSize = myStr.length();
+//    char* src = new char[lineSize + 1];
+//    strcpy(src, myStr.c_str());
+//    char* dst = new char[lineSize + 1];
+    
+    FILE* input;
+    input = fopen(data.c_str(), "r");
+    
+    char src[1000];
+    fgets(src, 999, input);
+
+    
+    char*  dst = new char[1000];
+    
+    string s_src(src);
+    const char* p_src = s_src.c_str();
+    
+    //ZSTD_decompress(dst, 1000, p_src, 1000);
+    
+    
+    cout << dst << endl;
+    
+    
+    //FIXME https://github.com/valyala/gozstd/blob/master/zstd/examples/streaming_decompression.c
+    
+    
+
+    //ZSTD_decompress(dst, myStr.length() + 1, src, myStr.length() + 1);
+    
+    
+    
+    //cout << dst << endl;
+
+    //delete [] src;
+    delete [] dst;
+    
+    cout << "Made it" << endl;
+    
+}

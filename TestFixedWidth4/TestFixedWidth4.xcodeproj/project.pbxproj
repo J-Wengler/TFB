@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A0BEDCAE23425829003C1D4B /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A0BEDCAD23425829003C1D4B /* main.cpp */; };
+		A00471122385A86600307CDC /* zstd-dev 2 in Frameworks */ = {isa = PBXBuildFile; fileRef = A00471112385A86600307CDC /* zstd-dev 2 */; };
+		A0BEDCAE23425829003C1D4B /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A0BEDCAD23425829003C1D4B /* main.cpp */; settings = {COMPILER_FLAGS = "-Lzstd"; }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,6 +24,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A00471112385A86600307CDC /* zstd-dev 2 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "zstd-dev 2"; path = "../zstd-dev 2"; sourceTree = "<group>"; };
 		A0BEDCAA23425829003C1D4B /* TestFixedWidth4 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = TestFixedWidth4; sourceTree = BUILT_PRODUCTS_DIR; };
 		A0BEDCAD23425829003C1D4B /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -32,17 +34,27 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A00471122385A86600307CDC /* zstd-dev 2 in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A00471102385A86600307CDC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				A00471112385A86600307CDC /* zstd-dev 2 */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		A0BEDCA123425828003C1D4B = {
 			isa = PBXGroup;
 			children = (
 				A0BEDCAC23425829003C1D4B /* TestFixedWidth4 */,
 				A0BEDCAB23425829003C1D4B /* Products */,
+				A00471102385A86600307CDC /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -88,7 +100,7 @@
 		A0BEDCA223425828003C1D4B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1100;
+				LastUpgradeCheck = 1120;
 				ORGANIZATIONNAME = "James Wengler";
 				TargetAttributes = {
 					A0BEDCA923425828003C1D4B = {
@@ -176,10 +188,14 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				"HEADER_SEARCH_PATHS[arch=*]" = /usr/local/include/zstd.h;
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "-lzstd";
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
+				"OTHER_LDFLAGS[arch=*]" = "";
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -231,6 +247,9 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				OTHER_CFLAGS = "-lzstd";
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
+				"OTHER_LDFLAGS[arch=*]" = "";
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -238,7 +257,9 @@
 		A0BEDCB223425829003C1D4B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
+				GCC_VERSION = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -246,7 +267,9 @@
 		A0BEDCB323425829003C1D4B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
+				GCC_VERSION = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

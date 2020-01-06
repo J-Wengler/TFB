@@ -6,7 +6,6 @@
 //                              //
 //////////////////////////////////
 
-#include </Users/jameswengler/TFB/zstd/lib/zstd.h>
 #include <algorithm>
 #include <sstream>
 #include <iostream>
